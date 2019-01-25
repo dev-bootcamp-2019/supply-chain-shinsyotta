@@ -68,7 +68,12 @@ contract SupplyChain {
   /* For each of the following modifiers, use what you learned about modifiers
    to give them functionality. For example, the forSale modifier should require
    that the item with the given sku has the state ForSale. */
-  modifier forSale (uint _sku) { require(items[_sku].state == State.ForSale, "The SKU is not for sale."); _;}
+  modifier forSale (uint _sku) { 
+    require(items[_sku].state == State.ForSale, "The SKU is not for sale."); 
+    // require (items[_sku].seller != address(0), "The item does not exist"); 
+    require (bytes(items[_sku].name).length != 0, "The item is not named."); 
+    _;
+  }
   modifier sold (uint _sku) { require(items[_sku].state == State.Sold, "The SKU is not sold."); _;}
   modifier shipped (uint _sku) { require(items[_sku].state == State.Shipped, "The SKU is not shipped."); _;}
   modifier received (uint _sku) { require(items[_sku].state == State.Received, "The SKU is not received."); _;}
@@ -92,17 +97,17 @@ contract SupplyChain {
     if the buyer paid enough, and check the value after the function is called to make sure the buyer is
     refunded any excess ether sent. Remember to call the event associated with this function!*/
 
-  function buyItem(uint sku)
-    forSale(sku)
-    paidEnough(items[sku].price)
-    checkValue(sku)
+  function buyItem(uint _sku)
+    forSale(_sku)
+    paidEnough(items[_sku].price)
+    checkValue(_sku)
     public
     payable
   {
-    items[sku].seller.transfer(items[sku].price);
-    items[sku].buyer = msg.sender;
-    items[sku].state = State.Sold;
-    emit Sold(sku);
+    items[_sku].seller.transfer(items[_sku].price);
+    items[_sku].buyer = msg.sender;
+    items[_sku].state = State.Sold;
+    emit Sold(_sku);
   }
 
   /* Add 2 modifiers to check if the item is sold already, and that the person calling this function
@@ -136,6 +141,10 @@ contract SupplyChain {
     seller = items[_sku].seller;
     buyer = items[_sku].buyer;
     return (name, sku, price, state, seller, buyer);
+  }
+
+  function getState(uint _sku) view public returns (uint) { 
+    return uint(items[_sku].state); 
   }
 
 }
